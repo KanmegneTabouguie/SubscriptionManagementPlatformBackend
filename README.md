@@ -57,17 +57,15 @@ Create a `.env` file and add the following:
     
     ```bash
     STRIPE_SECRET_KEY=
-STRIPE_PUBLISHABLE_KEY=
-STRIPE_WEBHOOK_SECRET=
-JWT_SECRET=
-DB_USER=
-DB_HOST=
-DB_NAME=
-DB_PASSWORD=
-DB_PORT=
-SENDGRID_API_KEY=
-
-    
+    STRIPE_PUBLISHABLE_KEY=
+    STRIPE_WEBHOOK_SECRET=
+    JWT_SECRET=
+    DB_USER=
+    DB_HOST=
+    DB_NAME=
+    DB_PASSWORD=
+    DB_PORT=
+    SENDGRID_API_KEY=
     ```
     
 4. **Start the server:**
