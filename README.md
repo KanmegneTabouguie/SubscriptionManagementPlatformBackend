@@ -41,14 +41,13 @@ Check out our detailed step-by-step guide on how to manage your subscriptions an
 1. **Clone the repository:**
     
     ```bash
-    git clone <https://github.com/yourusername/ktayl-consult-subscription.git>
-    
+    git clone https://github.com/KanmegneTabouguie/SubscriptionManagementPlatformBackend.git    
     ```
     
 2. **Install dependencies:**
     
     ```bash
-    cd ktayl-consult-subscription
+    cd stripewebapp
     npm install
     
     ```
@@ -57,15 +56,24 @@ Check out our detailed step-by-step guide on how to manage your subscriptions an
 Create a `.env` file and add the following:
     
     ```bash
-    STRIPE_SECRET_KEY=your_stripe_secret_key
-    JWT_SECRET=your_jwt_secret
+    STRIPE_SECRET_KEY=
+STRIPE_PUBLISHABLE_KEY=
+STRIPE_WEBHOOK_SECRET=
+JWT_SECRET=
+DB_USER=
+DB_HOST=
+DB_NAME=
+DB_PASSWORD=
+DB_PORT=
+SENDGRID_API_KEY=
+
     
     ```
     
 4. **Start the server:**
     
     ```bash
-    npm start
+    node index.js
     
     ```
     
