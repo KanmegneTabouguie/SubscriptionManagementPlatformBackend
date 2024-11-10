@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment History</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        // Function to fetch payment history and invoices
+        const fetchPaymentHistory = async () => {
+            const token = localStorage.getItem('jwtToken');  // Retrieve JWT token
+
+            if (!token) {
+                alert('You need to log in first.');
+                window.location.href = '/login.html';  // Redirect to login if not logged in
+                return;
+            }
+
+            try {
+                const response = await fetch('https://048d-2a01-e0a-d5d-b2c0-94a9-57f9-ba34-654.ngrok-free.app/api/stripe/payment-history', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,  // Add JWT token to Authorization header
+                    }
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    displayPaymentHistory(data.invoices);  // Call function to display payment history
+                } else {
+                    console.error('Error fetching payment history:', data.message);
+                    alert('Error fetching payment history: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+        };
+
+        // Function to display payment history in the UI
+        const displayPaymentHistory = (invoices) => {
+            const paymentHistoryList = document.getElementById('payment-history-list');
+            paymentHistoryList.innerHTML = '';  // Clear the list
+
+            if (invoices.length === 0) {
+                paymentHistoryList.innerHTML = '<p>No payment history available.</p>';
+                return;
+            }
+
+            invoices.forEach(invoice => {
+                const invoiceItem = document.createElement('div');
+                invoiceItem.classList.add('invoice-item');
+
+                invoiceItem.innerHTML = `
+                    <p><strong>Invoice ID:</strong> ${invoice.id}</p>
+                    <p><strong>Amount Paid:</strong> $${invoice.amount_paid}</p>
+                    <p><strong>Status:</strong> ${invoice.status}</p>
+                    <p><strong>Date:</strong> ${invoice.invoice_date}</p>
+                    <a href="${invoice.download_url}" target="_blank">Download Invoice</a>
+                    <hr>
+                `;
+                paymentHistoryList.appendChild(invoiceItem);
+            });
+        };
+
+        // Fetch payment history when the page loads
+        window.onload = fetchPaymentHistory;
+    </script>
+</head>
+<body>
+    <h1>Payment History</h1>
+    <div id="payment-history-list"></div>
+</body>
+</html>

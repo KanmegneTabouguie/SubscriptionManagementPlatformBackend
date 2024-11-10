@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Login</title>
+    <script>
+        // Function to log in a user
+        async function loginUser() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('https://048d-2a01-e0a-d5d-b2c0-94a9-57f9-ba34-654.ngrok-free.app/api/users/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    console.log('Login successful:', data);
+                    // Store the token in localStorage or sessionStorage
+                    localStorage.setItem('jwtToken', data.token);
+
+                    // Log the token for debugging
+                    console.log('JWT Token:', data.token);
+
+                    // Redirect to subscription page or show a success message
+                    window.location.href = '/index.html'; // Redirect to subscription page
+                } else {
+                    console.error('Login failed:', data.message);
+                    alert('Login failed: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error logging in:', error.message);
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Login to Your Account</h1>
+    <form onsubmit="event.preventDefault(); loginUser();">
+        <label for="email">Email:</label><br>
+        <input type="email" id="email" required><br><br>
+
+        <label for="password">Password:</label><br>
+        <input type="password" id="password" required><br><br>
+
+        <button type="submit">Login</button>
+    </form>
+</body>
+</html>

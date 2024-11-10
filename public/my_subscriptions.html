@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Subscriptions</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        // Function to fetch active subscriptions
+        const fetchSubscriptions = async () => {
+            const token = localStorage.getItem('jwtToken'); // Retrieve JWT token
+
+            if (!token) {
+                alert('You need to log in first.');
+                window.location.href = '/login.html'; // Redirect to login if not logged in
+                return;
+            }
+
+            try {
+                const response = await fetch('https://048d-2a01-e0a-d5d-b2c0-94a9-57f9-ba34-654.ngrok-free.app/api/stripe/subscriptions', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}` // Add JWT token to Authorization header
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displaySubscriptions(data.subscriptions); // Call function to display subscriptions
+                } else {
+                    const errorData = await response.json();
+                    console.error('Error fetching subscriptions:', errorData.message);
+                    alert('Error fetching subscriptions: ' + errorData.message);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+        };
+
+        // Function to display subscriptions in the UI
+        const displaySubscriptions = (subscriptions) => {
+            const subscriptionList = document.getElementById('subscription-list');
+            subscriptionList.innerHTML = '';
+
+            if (subscriptions.length === 0) {
+                subscriptionList.innerHTML = '<p>No active subscriptions.</p>';
+                return;
+            }
+
+            subscriptions.forEach(sub => {
+                const subItem = document.createElement('div');
+                subItem.classList.add('subscription-item');
+
+                // Display trial info if the subscription is in trial
+                const trialInfo = sub.trial_status === 'trialing' 
+                    ? `<p><strong>Trial Ends On:</strong> ${new Date(sub.trial_end * 1000).toLocaleDateString()}</p>` 
+                    : '';
+
+                subItem.innerHTML = `
+                    <p><strong>Subscription ID:</strong> ${sub.id}</p>
+                    <p><strong>Plan:</strong> ${sub.plan}</p>
+                    <p><strong>Status:</strong> <span id="status-${sub.id}">${sub.status}</span></p>
+                    ${trialInfo} <!-- Display trial information -->
+                    <button onclick="cancelSubscription('${sub.id}')">Cancel Subscription</button>
+                    <button onclick="pauseSubscription('${sub.id}')">Pause Subscription</button>
+                    <button onclick="resumeSubscription('${sub.id}')">Resume Subscription</button>
+                    <button onclick="upgradeSubscription('${sub.id}')">Upgrade Subscription</button>
+                    <button onclick="downgradeSubscription('${sub.id}')">Downgrade Subscription</button>
+                `;
+                subscriptionList.appendChild(subItem);
+            });
+        };
+
+        // Function to change a subscription plan (upgrade/downgrade)
+        const changeSubscriptionPlan = async (subscriptionId, newPriceId) => {
+            const token = localStorage.getItem('jwtToken');
+            try {
+                const response = await fetch('https://048d-2a01-e0a-d5d-b2c0-94a9-57f9-ba34-654.ngrok-free.app/api/stripe/change-subscription-plan', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ subscriptionId, newPriceId }),
+                });
+
+                if (response.ok) {
+                    alert('Subscription plan updated successfully.');
+                    fetchSubscriptions(); // Refresh the subscription list
+                } else {
+                    const errorData = await response.json();
+                    alert('Error updating subscription plan: ' + errorData.message);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+        };
+
+        // Function to upgrade subscription to Premium Plan
+        const upgradeSubscription = async (subscriptionId) => {
+            const newPriceId = 'price_1QC4tsEP2vmEedR8iNAa9rrZ'; // Premium Plan price ID
+            await changeSubscriptionPlan(subscriptionId, newPriceId);
+        };
+
+        // Function to downgrade subscription to Basic Plan
+        const downgradeSubscription = async (subscriptionId) => {
+            const newPriceId = 'price_1QC4svEP2vmEedR8OImDG4Ae'; // Basic Plan price ID
+            await changeSubscriptionPlan(subscriptionId, newPriceId);
+        };
+
+        // Function to cancel a subscription
+        const cancelSubscription = async (subscriptionId) => {
+            const token = localStorage.getItem('jwtToken');
+
+            try {
+                const response = await fetch(`https://048d-2a01-e0a-d5d-b2c0-94a9-57f9-ba34-654.ngrok-free.app/api/stripe/cancel-subscription/${subscriptionId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    document.getElementById(`status-${subscriptionId}`).innerText = 'canceled'; // Update status in UI
+                    alert('Subscription canceled successfully.');
+                } else {
+                    const errorData = await response.json();
+                    console.error('Error canceling subscription:', errorData.message);
+                    alert('Error canceling subscription: ' + errorData.message);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+        };
+
+        // Function to pause a subscription
+        const pauseSubscription = async (subscriptionId) => {
+            const token = localStorage.getItem('jwtToken');
+
+            try {
+                const response = await fetch(`https://048d-2a01-e0a-d5d-b2c0-94a9-57f9-ba34-654.ngrok-free.app/api/stripe/pause-subscription/${subscriptionId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    document.getElementById(`status-${subscriptionId}`).innerText = 'paused'; // Update status in UI
+                    alert('Subscription paused successfully.');
+                } else {
+                    const errorData = await response.json();
+                    console.error('Error pausing subscription:', errorData.message);
+                    alert('Error pausing subscription: ' + errorData.message);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+        };
+
+        // Function to resume a subscription
+        const resumeSubscription = async (subscriptionId) => {
+            const token = localStorage.getItem('jwtToken');
+
+            try {
+                const response = await fetch(`https://048d-2a01-e0a-d5d-b2c0-94a9-57f9-ba34-654.ngrok-free.app/api/stripe/resume-subscription/${subscriptionId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    document.getElementById(`status-${subscriptionId}`).innerText = 'active'; // Update status in UI
+                    alert('Subscription resumed successfully.');
+                } else {
+                    const errorData = await response.json();
+                    console.error('Error resuming subscription:', errorData.message);
+                    alert('Error resuming subscription: ' + errorData.message);
+                }
+            } catch (error) {
+                console.error('Error:', error.message);
+            }
+        };
+
+        // Fetch subscriptions when the page loads
+        window.onload = fetchSubscriptions;
+    </script>
+</head>
+<body>
+    <h1>My Subscriptions</h1>
+    <div id="subscription-list"></div>
+</body>
+</html>
